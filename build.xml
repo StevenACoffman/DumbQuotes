@@ -1,0 +1,127 @@
+<!-- Build Script provided by Travell Perkins, tlperkins@dev.java.net with improvements by Mike.Miller@jda.com -->
+<project name="DumbQuotes"
+         default="dist"
+         basedir=".">
+  <property name="src"
+            location="src/edu/umich/lsa" />
+  <property name="src.path"
+            value="${basedir}/src" />
+  <property name="docs"
+            value="${basedir}/docs" />
+  <path id="project.classpath">
+    <fileset dir="${basedir}/depend">
+      <include name="*.properties" />
+    </fileset>
+    <fileset dir="${basedir}/depend">
+      <include name="*.jar" />
+    </fileset>
+    <!-- <fileset dir="${basedir}/../hibernate/jdbc">
+        <include name="*.jar"/>
+      </fileset> -->
+    <pathelement location="${java.home}/../lib/tools.jar" />
+    <pathelement location="lib/dumbquotes.jar" />
+  </path>
+  <target name="help">
+    <echo message="To build concurrent.jar which contains the core library and misc classes: ant dist" />
+    <echo message="To clean the build created files: ant clean" />
+  </target>
+  <target name="clean">
+    <delete dir="build" />
+    <delete dir="lib" />
+  </target>
+  <target name="init"
+          depends="showclasspath">
+    <mkdir dir="build" />
+    <mkdir dir="build/lib" />
+    <mkdir dir="lib" />
+    <mkdir dir="${src}" />
+    <mkdir dir="${docs}" />
+  </target>
+  <target name="setup.packages"
+          depends="init">
+    <copy toDir="${src}"
+          flatten="true">
+      <fileset dir=".">
+        <include name="*.java" />
+      </fileset>
+    </copy>
+  </target>
+  <target name="compile"
+          depends="init">
+    <echo message="Classpath is ${project.classpath}" />
+    <javac srcdir="src"
+           destdir="build"
+           optimize="true"
+           debug="true"
+           debuglevel="lines,vars,source">
+      <classpath refid="project.classpath" />
+    </javac>
+  </target>
+  <target name="dist"
+          depends="compile">
+    <!-- <copy toDir="build" flatten="true">
+            <fileset dir="jdbc">
+                <include name="*.jar"/>
+            </fileset>
+        </copy> -->
+    <copy toDir="build/edu/umich/lsa"
+          flatten="true">
+      <fileset dir="src/edu/umich/lsa">
+        <include name="*.java" />
+      </fileset>
+    </copy>
+    <jar jarfile="lib/dumbquotes.jar"
+         basedir="build"
+         index="no">
+      <!--
+-->
+      <manifest>
+        <attribute name="Main-Class"
+                   value="edu.umich.lsa.DumbQuotes" />
+        <!-- any external jars must be referenced in the class path and are resolved relative to this jar -->
+        <attribute name="Class-Path"
+                   value=" ../depend/jaxen.jar
+ ../depend/jdom.jar
+ ../depend/saxpath.jar
+ ../depend/xalan.jar
+ ../depend/xerces.jar
+ ../depend/xml-apis.jar" />
+      </manifest>
+    </jar>
+    <delete dir="build" />
+  </target>
+  <target name="showclasspath">
+    <pathconvert pathsep="${line.separator}|   |-- "
+                 property="echo.path.compile"
+                 refid="project.classpath"></pathconvert>
+    <echo message="|-- compile classpath" />
+    <echo message="|   |" />
+    <echo message="|   |-- ${echo.path.compile}" />
+  </target>
+  <target name="execute"
+          depends="showclasspath">
+    <echo message="Classpath is ${project.classpath}" />
+    <echo message="Classpath is ${toString:project.classpath}" />
+    <java jar="lib/dumbquotes.jar"
+          fork="true"
+          failonerror="true"
+          maxmemory="128m">
+      <arg value="-verbose" />
+      <jvmarg value="-Dfile.encoding=UTF-8" />
+      <classpath refid="project.classpath" />
+    </java>
+  </target>
+  <target name="javadoc"
+          depends="init">
+    <delete includeEmptyDirs="true"
+            quiet="true">
+      <fileset dir="${src}/docs" />
+    </delete>
+    <mkdir dir="${docs}" />
+    <javadoc maxmemory="256m"
+             packagenames="edu.umich.lsa.*"
+             sourcepath="${src.path}"
+             destdir="${docs}"
+             defaultexcludes="yes"></javadoc>
+  </target>
+</project>
